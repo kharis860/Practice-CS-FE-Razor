@@ -46,7 +46,9 @@
                                     onclick="openEditModal(@user.Id, '@user.Username', '@user.Password')">
                                 Edit
                             </button>
-                            <a href="#" class="btn btn-sm btn-danger">Delete</a>
+                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(@user.Id, '@user.Username')">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 }
@@ -90,13 +92,37 @@
     </div>
 </div>
 
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
+                <div id="deleteSelfWarning" class="alert alert-warning d-none">
+                    <strong>⚠️ Warning:</strong> You are deleting your own account. You will be automatically logged
+                    out.
+                </div>
+                <p class="text-danger mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" asp-page-handler="Delete" id="deleteForm" class="d-inline">
+                    <input type="hidden" id="deleteUserId" name="userId" />
+                    <input type="hidden" id="deleteUserUsername" name="deletedUsername" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const users = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Users));
-    console.log('Users from API:', users);
 
     function openEditModal(userId, username, password) {
-        console.log('Opening edit modal for user:', userId, username, password);
-
         document.getElementById('editUserId').value = userId;
         document.getElementById('editUsername').value = username;
         document.getElementById('editPassword').value = password || '';
@@ -105,11 +131,21 @@
         modal.show();
     }
 
-    document.getElementById('editForm')?.addEventListener('submit', function (e) {
-        console.log('Form submitted!');
-        console.log('User ID:', document.getElementById('editUserId').value);
-        console.log('Username:', document.getElementById('editUsername').value);
-    });
-</script>
+    function confirmDelete(userId, username) {
+        document.getElementById('deleteUserId').value = userId;
+        document.getElementById('deleteUserUsername').value = username;
+        document.getElementById('deleteUsername').textContent = username;
 
-<div id="userList"></div>
+        const currentUsername = '@Model.CurrentUsername';
+        const deleteSelfWarning = document.getElementById('deleteSelfWarning');
+
+        if (username === currentUsername) {
+            deleteSelfWarning.classList.remove('d-none');
+        } else {
+            deleteSelfWarning.classList.add('d-none');
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+</script>

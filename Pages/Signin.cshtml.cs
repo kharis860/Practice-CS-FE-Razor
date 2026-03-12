@@ -65,7 +65,7 @@ public class SigninModel : PageModel
                 if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
                 {
                     HttpContext.Session.SetString("Token", loginResponse.Token);
-                    HttpContext.Session.SetString("Username", loginResponse.Username.ToString());
+                    HttpContext.Session.SetString("Username", loginResponse.Username);
                     HttpContext.Session.SetString("IsLoggedIn", "true");
 
                     return RedirectToPage("/User");

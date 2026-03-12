@@ -14,10 +14,12 @@ namespace MyApp.Namespace
         }
 
         public List<User> Users { get; set; } = new();
+        public string? CurrentUsername { get; set; }
 
         public async Task OnGetAsync()
         {
             var token = HttpContext.Session.GetString("Token");
+            CurrentUsername = HttpContext.Session.GetString("Username");
             if (string.IsNullOrEmpty(token))
             {
                 Response.Redirect("/Signin");
@@ -93,6 +95,61 @@ namespace MyApp.Namespace
             {
                 Console.WriteLine($"Edit error: {ex.Message}");
                 TempData["ErrorMessage"] = "An error occurred.";
+            }
+
+            return RedirectToPage();
+        }
+        public async Task<IActionResult> OnPostDeleteAsync(int userId, string deletedUsername)
+        {
+            var token = HttpContext.Session.GetString("Token");
+            var currentUsername = HttpContext.Session.GetString("Username");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToPage("/Signin");
+            }
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await client.DeleteAsync(
+                    $"http://localhost:5012/api/Users/{userId}"
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    bool isDeletingSelf = deletedUsername == currentUsername;
+
+                    if (isDeletingSelf)
+                    {
+                        HttpContext.Session.Clear();
+                        TempData["SuccessMessage"] = "Your account has been deleted.";
+                        return RedirectToPage("/Signin");
+                    }
+
+                    TempData["SuccessMessage"] = "User deleted successfully!";
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    TempData["ErrorMessage"] = "Access denied. You don't have permission to delete this user.";
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please login again.";
+                    return RedirectToPage("/Signin");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = $"Failed to delete user. Error: {response.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Delete error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while deleting user.";
             }
 
             return RedirectToPage();

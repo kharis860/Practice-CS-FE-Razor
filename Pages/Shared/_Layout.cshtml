@@ -28,6 +28,17 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/User">User</a>
                         </li>
                     </ul>
+                    @if (!string.IsNullOrEmpty(Context.Session.GetString("Username")))
+                    {
+                        <div class="d-flex align-items-center">
+                            <span class="navbar-text me-3">
+                                Welcome, <strong>@Context.Session.GetString("Username")</strong>
+                            </span>
+                            <form method="post" asp-page="/User" asp-page-handler="Logout" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Logout</button>
+                            </form>
+                        </div>
+                    }
                 </div>
             </div>
         </nav>

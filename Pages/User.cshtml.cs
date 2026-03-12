@@ -73,9 +73,20 @@ namespace MyApp.Namespace
                 {
                     TempData["SuccessMessage"] = "User updated successfully!";
                 }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    TempData["ErrorMessage"] = "Access denied. You don't have permission to edit this user.";
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please login again.";
+                    return RedirectToPage("/Signin");
+                }
                 else
                 {
-                    TempData["ErrorMessage"] = "Failed to update user.";
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Response Body: {responseBody}");
+                    TempData["ErrorMessage"] = $"Failed to update user. Error: {response.StatusCode}";
                 }
             }
             catch (Exception ex)

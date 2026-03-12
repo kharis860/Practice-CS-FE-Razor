@@ -1,0 +1,47 @@
+﻿@page
+@model MyApp.Namespace.UserModel
+@{
+    ViewData["Title"] = "User Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">User Page</h1>
+</div>
+
+<div class="container mt-4">
+    <h2>User List</h2>
+
+    @if (Model.Users != null && Model.Users.Any())
+    {
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.Id</td>
+                        <td>@user.Username</td>
+                        <td>@user.Password</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="alert alert-info">No users found.</p>
+    }
+</div>
+
+<script>
+    const users = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Users));
+    console.log('Users from API:', users);
+</script>
+
+<div id="userList"></div>
